@@ -25,6 +25,7 @@
   <ItemGroup>
     <ClCompile Include="app.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="yellowstone_pipeline.cpp" />
     <ClCompile Include="yellowstone_window.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
