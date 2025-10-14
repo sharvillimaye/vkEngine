@@ -2,6 +2,7 @@
 
 #include "yellowstone_window.hpp"
 #include "yellowstone_pipeline.hpp"
+#include "yellowstone_device.hpp"
 
 namespace yellowstone {
 	class App {
@@ -10,7 +11,13 @@ namespace yellowstone {
 		static constexpr int HEIGHT = 600;
 		void run();
 	private:
-		YellowstoneWindow yellowstoneWindow{ WIDTH, HEIGHT, "Hello Vulkan!" };
-		YellowstonePipeline yellowstonePipeline{ "shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv" };
+		YellowstoneWindow yellowstoneWindow{WIDTH, HEIGHT, "Hello Vulkan!"};
+		YellowstoneDevice yellowstoneDevice{yellowstoneWindow};
+		YellowstonePipeline yellowstonePipeline{
+			yellowstoneDevice, 
+			"shaders/simple_shader.vert.spv", 
+			"shaders/simple_shader.frag.spv", 
+			YellowstonePipeline::defaultPipelineConfigInfo(WIDTH, HEIGHT)
+		};
 	};
 }

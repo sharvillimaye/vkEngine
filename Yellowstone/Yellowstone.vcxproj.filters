@@ -21,6 +21,9 @@
     <ClInclude Include="app.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="yellowstone_pipeline.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="yellowstone_window.cpp">
@@ -33,6 +36,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="yellowstone_pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yellowstone_device.hpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yellowstone_device.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
