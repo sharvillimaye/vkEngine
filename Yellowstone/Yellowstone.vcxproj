@@ -20,12 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.hpp" />
+    <ClInclude Include="yellowstone_swap_chain.hpp" />
     <ClInclude Include="yellowstone_pipeline.hpp" />
     <ClInclude Include="yellowstone_window.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="yellowstone_swap_chain.cpp" />
     <ClCompile Include="yellowstone_device.cpp" />
     <ClCompile Include="yellowstone_device.hpp" />
     <ClCompile Include="yellowstone_pipeline.cpp" />

@@ -10,7 +10,6 @@ namespace yellowstone {
 	struct PipelineConfigInfo {
 		VkViewport viewport;
 		VkRect2D scissor;
-		VkPipelineViewportStateCreateInfo viewportInfo;
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
 		VkPipelineRasterizationStateCreateInfo rasterizationInfo;
 		VkPipelineMultisampleStateCreateInfo multisampleInfo;
@@ -25,7 +24,7 @@ namespace yellowstone {
 	class YellowstonePipeline {
 	public:
 		YellowstonePipeline(YellowstoneDevice& device, const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo);
-		~YellowstonePipeline() {}
+		~YellowstonePipeline();
 		YellowstonePipeline(const YellowstonePipeline&) = delete;
 		void operator=(const YellowstonePipeline&) = delete;
 		static PipelineConfigInfo defaultPipelineConfigInfo(uint32_t width, uint32_t height);
