@@ -1,9 +1,9 @@
 #version 450
 
 vec2 positions[3] = vec2[](
-	vec2(0.0, -0.5),
-	vec2(0.5, 0.5),
-	vec2(-0.5, -0.5)
+    vec2( 0.0,  0.5),  // top middle
+    vec2(-0.5, -0.5),  // bottom left
+    vec2( 0.5, -0.5)   // bottom right
 );
 	
 
