@@ -1,6 +1,10 @@
-# env files
+# Custom
 .env
+.idea/
+.vscode/
+cmake-build-*/
 
+# VisualStudio.gitignore
 # User-specific files
 *.rsuser
 *.suo
