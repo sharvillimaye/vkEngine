@@ -5,6 +5,8 @@
 #include <iostream>
 #include <set>
 #include <unordered_set>
+#include <algorithm>
+#include <vulkan/vulkan_beta.h>
 
 namespace yellowstone {
 
@@ -87,6 +89,14 @@ namespace yellowstone {
         createInfo.pApplicationInfo = &appInfo;
 
         auto extensions = getRequiredExtensions();
+
+        // If the portability enumeration extension was requested (for example on macOS
+        // with MoltenVK), we must set the enumerate portability flag on the instance
+        // create info so the loader will enumerate portability drivers.
+        const char* portabilityExt = VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME;
+        if (std::find(extensions.begin(), extensions.end(), portabilityExt) != extensions.end()) {
+            createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+        }
         createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
 
@@ -272,6 +282,23 @@ namespace yellowstone {
 
         if (enableValidationLayers) {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        }
+
+        // Check for the portability enumeration extension and add it if available.
+        // This is needed on some platforms (MoltenVK on macOS) where drivers are
+        // exposed as portability drivers.
+        uint32_t extensionCount = 0;
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+        if (extensionCount > 0) {
+            std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+            vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, availableExtensions.data());
+
+            for (const auto& ext : availableExtensions) {
+                if (strcmp(ext.extensionName, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME) == 0) {
+                    extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+                    break;
+                }
+            }
         }
 
         return extensions;

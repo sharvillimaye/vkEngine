@@ -52,8 +52,8 @@ namespace yellowstone {
 		pipelineConfig.pipelineLayout = pipelineLayout;
 		yellowstonePipeline = std::make_unique<YellowstonePipeline>(
 			yellowstoneDevice,
-			"shaders/simple_shader.vert.spv",
-			"shaders/simple_shader.frag.spv",
+			"../src/shaders/simple_shader.vert.spv",
+			"../src/shaders/simple_shader.frag.spv",
 			pipelineConfig
 		);
 	}
