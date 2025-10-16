@@ -35,7 +35,7 @@ namespace yellowstone {
 
         // Not copyable or movable
         YellowstoneDevice(const YellowstoneDevice&) = delete;
-        void operator=(const YellowstoneDevice&) = delete;
+        YellowstoneDevice& operator=(const YellowstoneDevice&) = delete;
         YellowstoneDevice(YellowstoneDevice&&) = delete;
         YellowstoneDevice& operator=(YellowstoneDevice&&) = delete;
 

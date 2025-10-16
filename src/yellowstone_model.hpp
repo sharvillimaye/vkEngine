@@ -23,7 +23,7 @@ namespace yellowstone {
 		YellowstoneModel(YellowstoneDevice &device, const std::vector<Vertex> &vertices);
 		~YellowstoneModel();
 		YellowstoneModel(const YellowstoneModel&) = delete;
-		void operator=(const YellowstoneModel&) = delete;
+		YellowstoneModel& operator=(const YellowstoneModel&) = delete;
 		
 		void bind(VkCommandBuffer commandBuffer);
 		void draw(VkCommandBuffer commandBuffer);

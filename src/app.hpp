@@ -27,11 +27,14 @@ namespace yellowstone {
 		void createPipelineLayout();
 		void createPipeline();
 		void createCommandBuffers();
+		void freeCommandBuffers();
 		void drawFrame();
+		void recreateSwapChain();
+		void recordCommandBuffer(int imageIndex);
 
 		YellowstoneWindow yellowstoneWindow{WIDTH, HEIGHT, "Hello Vulkan!"};
 		YellowstoneDevice yellowstoneDevice{yellowstoneWindow};
-		YellowstoneSwapChain yellowstoneSwapChain{ yellowstoneDevice, yellowstoneWindow.getExtent() };
+		std::unique_ptr<YellowstoneSwapChain> yellowstoneSwapChain;
 		std::unique_ptr<YellowstonePipeline> yellowstonePipeline;
 		VkPipelineLayout pipelineLayout;
 		std::vector<VkCommandBuffer> commandBuffers;
