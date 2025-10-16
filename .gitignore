@@ -3,6 +3,7 @@
 .idea/
 .vscode/
 cmake-build-*/
+*.spv
 
 # VisualStudio.gitignore
 # User-specific files
