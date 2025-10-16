@@ -8,14 +8,19 @@
 namespace yellowstone {
 
 	struct PipelineConfigInfo {
-		VkViewport viewport;
-		VkRect2D scissor;
+		PipelineConfigInfo(const PipelineConfigInfo&) = delete;
+		PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
+		PipelineConfigInfo() = default;
+
+		VkPipelineViewportStateCreateInfo viewportInfo;
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
 		VkPipelineRasterizationStateCreateInfo rasterizationInfo;
 		VkPipelineMultisampleStateCreateInfo multisampleInfo;
 		VkPipelineColorBlendAttachmentState colorBlendAttachment;
 		VkPipelineColorBlendStateCreateInfo colorBlendInfo;
 		VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+		std::vector<VkDynamicState> dynamicStateEnables;
+		VkPipelineDynamicStateCreateInfo dynamicStateInfo;
 		VkPipelineLayout pipelineLayout = nullptr;
 		VkRenderPass renderPass = nullptr;
 		uint32_t subpass = 0;
@@ -25,9 +30,10 @@ namespace yellowstone {
 	public:
 		YellowstonePipeline(YellowstoneDevice& device, const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo);
 		~YellowstonePipeline();
+		YellowstonePipeline() = default;
 		YellowstonePipeline(const YellowstonePipeline&) = delete;
-		void operator=(const YellowstonePipeline&) = delete;
-		static PipelineConfigInfo defaultPipelineConfigInfo(uint32_t width, uint32_t height);
+		YellowstonePipeline& operator=(const YellowstonePipeline&) = delete;
+		static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
 		void bind(VkCommandBuffer commandBuffer);
 
 	private:

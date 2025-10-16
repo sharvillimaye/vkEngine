@@ -8,6 +8,7 @@
 // std lib headers
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace yellowstone {
 
@@ -16,10 +17,11 @@ namespace yellowstone {
         static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
         YellowstoneSwapChain(YellowstoneDevice& deviceRef, VkExtent2D windowExtent);
+        YellowstoneSwapChain(YellowstoneDevice& deviceRef, VkExtent2D windowExtent, std::shared_ptr<YellowstoneSwapChain> previous);
         ~YellowstoneSwapChain();
 
         YellowstoneSwapChain(const YellowstoneSwapChain&) = delete;
-        void operator=(const YellowstoneSwapChain&) = delete;
+        YellowstoneSwapChain& operator=(const YellowstoneSwapChain&) = delete;
 
         VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
         VkRenderPass getRenderPass() { return renderPass; }
@@ -39,6 +41,7 @@ namespace yellowstone {
         VkResult submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex);
 
     private:
+        void init();
         void createSwapChain();
         void createImageViews();
         void createDepthResources();
@@ -69,6 +72,7 @@ namespace yellowstone {
         VkExtent2D windowExtent;
 
         VkSwapchainKHR swapChain;
+		std::shared_ptr<YellowstoneSwapChain> oldSwapChain;
 
         std::vector<VkSemaphore> imageAvailableSemaphores;
         std::vector<VkSemaphore> renderFinishedSemaphores;
