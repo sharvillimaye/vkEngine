@@ -5,6 +5,7 @@
 #include "yellowstone_device.hpp"
 #include "yellowstone_swap_chain.hpp"
 #include "yellowstone_model.hpp"
+#include "yellowstone_game_object.hpp"
 
 #include <memory>
 #include <vector>
@@ -23,7 +24,7 @@ namespace yellowstone {
 		App& operator=(const App&) = delete;
 
 	private:
-		void loadModels();
+		void loadGameObjects();
 		void createPipelineLayout();
 		void createPipeline();
 		void createCommandBuffers();
@@ -31,6 +32,7 @@ namespace yellowstone {
 		void drawFrame();
 		void recreateSwapChain();
 		void recordCommandBuffer(int imageIndex);
+		void renderGameObjects(VkCommandBuffer commandBuffer);
 
 		YellowstoneWindow yellowstoneWindow{WIDTH, HEIGHT, "Hello Vulkan!"};
 		YellowstoneDevice yellowstoneDevice{yellowstoneWindow};
@@ -38,6 +40,6 @@ namespace yellowstone {
 		std::unique_ptr<YellowstonePipeline> yellowstonePipeline;
 		VkPipelineLayout pipelineLayout;
 		std::vector<VkCommandBuffer> commandBuffers;
-		std::unique_ptr<YellowstoneModel> yellowstoneModel;
+		std::vector<YellowstoneGameObject> gameObjects;
 	};
 }

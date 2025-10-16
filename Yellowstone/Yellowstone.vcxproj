@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.hpp" />
+    <ClInclude Include="yellowstone_game_object.hpp" />
     <ClInclude Include="yellowstone_model.hpp" />
     <ClInclude Include="yellowstone_swap_chain.hpp" />
     <ClInclude Include="yellowstone_pipeline.hpp" />
