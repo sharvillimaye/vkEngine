@@ -4,6 +4,7 @@
 #include "yellowstone_pipeline.hpp"
 #include "yellowstone_device.hpp"
 #include "yellowstone_swap_chain.hpp"
+#include "yellowstone_model.hpp"
 
 #include <memory>
 #include <vector>
@@ -22,6 +23,7 @@ namespace yellowstone {
 		App& operator=(const App&) = delete;
 
 	private:
+		void loadModels();
 		void createPipelineLayout();
 		void createPipeline();
 		void createCommandBuffers();
@@ -33,5 +35,6 @@ namespace yellowstone {
 		std::unique_ptr<YellowstonePipeline> yellowstonePipeline;
 		VkPipelineLayout pipelineLayout;
 		std::vector<VkCommandBuffer> commandBuffers;
+		std::unique_ptr<YellowstoneModel> yellowstoneModel;
 	};
 }
