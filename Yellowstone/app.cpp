@@ -6,6 +6,7 @@
 namespace yellowstone {
 
 	App::App() {
+		loadModels();
 		createPipelineLayout();
 		createPipeline();
 		createCommandBuffers();
@@ -22,6 +23,15 @@ namespace yellowstone {
 		}
 
 		vkDeviceWaitIdle(yellowstoneDevice.device());
+	}
+
+	void App::loadModels() {
+		std::vector<YellowstoneModel::Vertex> vertices{
+			{{0.0f, -0.5f}},
+			{{0.5f, 0.5f}},
+			{{-0.5f, 0.5f}}
+		};
+		yellowstoneModel = std::make_unique<YellowstoneModel>(yellowstoneDevice, vertices);
 	}
 
 	void App::createPipelineLayout() {
@@ -82,7 +92,8 @@ namespace yellowstone {
 
 			vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 			yellowstonePipeline->bind(commandBuffers[i]);
-			vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+			yellowstoneModel->bind(commandBuffers[i]);
+			yellowstoneModel->draw(commandBuffers[i]);
 
 			vkCmdEndRenderPass(commandBuffers[i]);
 			if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
