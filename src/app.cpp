@@ -1,6 +1,7 @@
 #include "app.hpp"
 #include "simple_render_system.hpp"
 #include "yellowstone_camera.hpp"
+#include "keyboard_movement_controller.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -9,6 +10,7 @@
 
 #include <stdexcept>
 #include <cassert>
+#include <chrono>
 
 namespace yellowstone {
 
@@ -21,14 +23,24 @@ namespace yellowstone {
 	void App::run() {
 		SimpleRenderSystem simpleRenderSystem{ yellowstoneDevice, yellowstoneRenderer.getSwapChainRenderPass() };
 		YellowstoneCamera camera{};
-		// camera.setViewDirection(glm::vec3(0.0f), glm::vec3(0.5f, 0.0f, 1.0f));
 		camera.setViewTarget(glm::vec3(-1.0f, -2.0f, -5.0f), glm::vec3(0.0f, 0.0f, 2.5f));
+
+		auto viewer = YellowstoneGameObject::createGameObject();
+		KeyboardMovementController cameraController{};
+
+		auto currentTime = std::chrono::high_resolution_clock::now();
 
         while (!yellowstoneWindow.shouldClose()) {
 			glfwPollEvents();
+
+        	auto newTime = std::chrono::high_resolution_clock::now();
+        	float frameTime = std::chrono::duration<float>(newTime - currentTime).count();
+        	currentTime = newTime;
+        	cameraController.moveInPlaneXZ(yellowstoneWindow.getWindow(), frameTime, viewer);
+        	camera.setViewYXZ(viewer.transform.translation, viewer.transform.rotation);
+
 			float aspect = yellowstoneRenderer.getAspectRatio();
             camera.setPerspectiveProjection(glm::radians(50.0f), aspect, 0.1f, 10.0f);
-        	// camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
 			if (auto commandBuffer = yellowstoneRenderer.beginFrame()) {
 				yellowstoneRenderer.beginSwapChainRenderPass(commandBuffer);
 				simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
