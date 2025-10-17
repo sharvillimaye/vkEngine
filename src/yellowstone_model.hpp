@@ -7,14 +7,18 @@
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <memory>
 
 namespace yellowstone {
 	
 	class YellowstoneModel {
 	public:
 		struct Vertex {
-			glm::vec3 position;
-			glm::vec3 color;
+			glm::vec3 position{};
+			glm::vec3 color{};
+			glm::vec3 normal{};
+			glm::vec2 uv{};
+
 			static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
 			static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 		};
@@ -22,13 +26,17 @@ namespace yellowstone {
 		struct Builder {
 			std::vector<Vertex> vertices{};
 			std::vector<uint32_t> indices{};
+
+			void loadModel(const std::string& filepath);
 		};
 
 		YellowstoneModel(YellowstoneDevice &device, const YellowstoneModel::Builder &builder);
 		~YellowstoneModel();
 		YellowstoneModel(const YellowstoneModel&) = delete;
 		YellowstoneModel& operator=(const YellowstoneModel&) = delete;
-		
+
+		static std::unique_ptr<YellowstoneModel> createModelFromFile(YellowstoneDevice& device, const std::string& filepath);
+
 		void bind(VkCommandBuffer commandBuffer);
 		void draw(VkCommandBuffer commandBuffer);
 	
