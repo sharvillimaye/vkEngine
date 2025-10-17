@@ -1,5 +1,7 @@
 #include "app.hpp"
 #include "simple_render_system.hpp"
+#include "yellowstone_camera.hpp"
+#include "keyboard_movement_controller.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -8,6 +10,7 @@
 
 #include <stdexcept>
 #include <cassert>
+#include <chrono>
 
 namespace yellowstone {
 
@@ -19,12 +22,28 @@ namespace yellowstone {
 
 	void App::run() {
 		SimpleRenderSystem simpleRenderSystem{ yellowstoneDevice, yellowstoneRenderer.getSwapChainRenderPass() };
+		YellowstoneCamera camera{};
+		camera.setViewTarget(glm::vec3(-1.0f, -2.0f, -5.0f), glm::vec3(0.0f, 0.0f, 2.5f));
 
-		while (!yellowstoneWindow.shouldClose()) {
+		auto viewer = YellowstoneGameObject::createGameObject();
+		KeyboardMovementController cameraController{};
+
+		auto currentTime = std::chrono::high_resolution_clock::now();
+
+        while (!yellowstoneWindow.shouldClose()) {
 			glfwPollEvents();
+
+        	auto newTime = std::chrono::high_resolution_clock::now();
+        	float frameTime = std::chrono::duration<float>(newTime - currentTime).count();
+        	currentTime = newTime;
+        	cameraController.moveInPlaneXZ(yellowstoneWindow.getWindow(), frameTime, viewer);
+        	camera.setViewYXZ(viewer.transform.translation, viewer.transform.rotation);
+
+			float aspect = yellowstoneRenderer.getAspectRatio();
+            camera.setPerspectiveProjection(glm::radians(50.0f), aspect, 0.1f, 10.0f);
 			if (auto commandBuffer = yellowstoneRenderer.beginFrame()) {
 				yellowstoneRenderer.beginSwapChainRenderPass(commandBuffer);
-				simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects);
+				simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
 				yellowstoneRenderer.endSwapChainRenderPass(commandBuffer);
 				yellowstoneRenderer.endFrame();
 			}
@@ -33,19 +52,69 @@ namespace yellowstone {
 		vkDeviceWaitIdle(yellowstoneDevice.device());
 	}
 
-	void App::loadGameObjects() {
+	// temporary helper function, creates a 1x1x1 cube centered at offset
+	std::unique_ptr<YellowstoneModel> createCubeModel(YellowstoneDevice& device, glm::vec3 offset) {
 		std::vector<YellowstoneModel::Vertex> vertices{
-			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+			// left face (white)
+	      {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+	      {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+	      {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+	      {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+	      {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
+	      {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+
+			 // right face (yellow)
+	      {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+	      {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+	      {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+	      {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+	      {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
+	      {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+
+			// top face (orange, remember y axis points down)
+	      {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+	      {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+	      {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+	      {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+	      {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+	      {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+
+			// bottom face (red)
+	      {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+	      {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+	      {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+	      {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+	      {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+	      {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+
+			// nose face (blue)
+	      {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+	      {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+	      {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+	      {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+	      {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+	      {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+
+			// tail face (green)
+	      {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+	      {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+	      {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+	      {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+	      {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+	      {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
 		};
-		auto yellowstoneModel = std::make_shared<YellowstoneModel>(yellowstoneDevice, vertices);
-		auto triangle = YellowstoneGameObject::createGameObject();
-		triangle.model = yellowstoneModel;
-		triangle.color = { 1.0f, 0.0f, 0.0f };
-		triangle.transform2d.translation.x = 0.2f;
-		triangle.transform2d.scale = { 2.f, .5f };
-		triangle.transform2d.rotation = .25f * glm::two_pi<float>();
-		gameObjects.push_back(std::move(triangle));
+	  for (auto& v : vertices) {
+	    v.position += offset;
+	  }
+	  return std::make_unique<YellowstoneModel>(device, vertices);
+	}
+
+	void App::loadGameObjects() {
+		std::shared_ptr<YellowstoneModel> yellowstoneModel = createCubeModel(yellowstoneDevice, {0.0f, 0.0f, 0.0f});
+		auto cube = YellowstoneGameObject::createGameObject();
+		cube.model = yellowstoneModel;
+		cube.transform.translation = {0.0f, 0.0f, 2.5f};
+		cube.transform.scale = {0.5f, 0.5f, 0.5f};
+		gameObjects.push_back(std::move(cube));
 	}
 }

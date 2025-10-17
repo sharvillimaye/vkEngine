@@ -19,6 +19,7 @@ namespace yellowstone {
 
         bool isFrameInProgress() { return isFrameStarted; }
         VkRenderPass getSwapChainRenderPass() const { return yellowstoneSwapChain->getRenderPass(); }
+        float getAspectRatio() const { return yellowstoneSwapChain->extentAspectRatio(); }
 
         VkCommandBuffer getCurrentFrameCommandBuffer() const {
             assert(isFrameStarted && "Cannot get command buffer before frame has started");

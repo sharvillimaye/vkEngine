@@ -17,6 +17,7 @@ namespace yellowstone {
 		void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
 		bool wasWindowResized() { return framebufferResized; }
 		void resetWindowResizedFlag() { framebufferResized = false; }
+		GLFWwindow* getWindow() { return window; }
 
 	private:
 		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);

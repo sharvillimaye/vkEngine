@@ -122,7 +122,7 @@ namespace yellowstone {
 		viewport.width = static_cast<float>(yellowstoneSwapChain->getSwapChainExtent().width);
 		viewport.height = static_cast<float>(yellowstoneSwapChain->getSwapChainExtent().height);
 		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
 		VkRect2D scissor{ {0, 0}, yellowstoneSwapChain->getSwapChainExtent() };
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
