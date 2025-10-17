@@ -1,5 +1,6 @@
 #include "app.hpp"
 #include "simple_render_system.hpp"
+#include "yellowstone_camera.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -19,12 +20,15 @@ namespace yellowstone {
 
 	void App::run() {
 		SimpleRenderSystem simpleRenderSystem{ yellowstoneDevice, yellowstoneRenderer.getSwapChainRenderPass() };
+		YellowstoneCamera camera{};
 
-		while (!yellowstoneWindow.shouldClose()) {
+        while (!yellowstoneWindow.shouldClose()) {
 			glfwPollEvents();
+			float aspect = yellowstoneRenderer.getAspectRatio();
+            camera.setPerspectiveProjection(glm::radians(50.0f), aspect, 0.1f, 10.0f);
 			if (auto commandBuffer = yellowstoneRenderer.beginFrame()) {
 				yellowstoneRenderer.beginSwapChainRenderPass(commandBuffer);
-				simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects);
+				simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
 				yellowstoneRenderer.endSwapChainRenderPass(commandBuffer);
 				yellowstoneRenderer.endFrame();
 			}
@@ -94,7 +98,7 @@ namespace yellowstone {
 		std::shared_ptr<YellowstoneModel> yellowstoneModel = createCubeModel(yellowstoneDevice, {0.0f, 0.0f, 0.0f});
 		auto cube = YellowstoneGameObject::createGameObject();
 		cube.model = yellowstoneModel;
-		cube.transform.translation = {0.0f, 0.0f, 0.5f};
+		cube.transform.translation = {0.0f, 0.0f, 2.5f};
 		cube.transform.scale = {0.5f, 0.5f, 0.5f};
 		gameObjects.push_back(std::move(cube));
 	}

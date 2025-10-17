@@ -57,7 +57,7 @@ namespace yellowstone {
 		);
 	}
 
-	void SimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<YellowstoneGameObject>& gameObjects) {
+	void SimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<YellowstoneGameObject>& gameObjects, const YellowstoneCamera& camera) {
 		yellowstonePipeline->bind(commandBuffer);
 
 		for (auto& obj : gameObjects) {
@@ -65,7 +65,7 @@ namespace yellowstone {
 			obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.005f, glm::two_pi<float>());
 			SimplePushConstantData push{};
 			push.color = obj.color;
-			push.transform = obj.transform.mat4();
+			push.transform = camera.getProjectionMatrix() * obj.transform.mat4();
 			vkCmdPushConstants(
 				commandBuffer,
 				pipelineLayout,
