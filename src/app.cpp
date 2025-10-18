@@ -86,7 +86,8 @@ namespace yellowstone {
 					frameTime,
 					commandBuffer,
 					camera,
-					globalDescriptorSets[frameIndex]
+					globalDescriptorSets[frameIndex],
+					gameObjects
 				};
 
 				// Update
@@ -97,7 +98,7 @@ namespace yellowstone {
 
 				// Render
 				yellowstoneRenderer.beginSwapChainRenderPass(commandBuffer);
-				simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
+				simpleRenderSystem.renderGameObjects(frameInfo);
 				yellowstoneRenderer.endSwapChainRenderPass(commandBuffer);
 				yellowstoneRenderer.endFrame();
 			}
@@ -112,20 +113,20 @@ namespace yellowstone {
 		smoothVase.model = yellowstoneModel;
 		smoothVase.transform.translation = {-0.5f, 0.5f, 0.0f};
 		smoothVase.transform.scale = glm::vec3(3.0f, 1.5f, 3.0f);
-		gameObjects.push_back(std::move(smoothVase));
+		gameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
 
 		yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/flat_vase.obj");
 		auto flatVase = YellowstoneGameObject::createGameObject();
 		flatVase.model = yellowstoneModel;
 		flatVase.transform.translation = {0.5f, 0.5f, 0.0f};
 		flatVase.transform.scale = glm::vec3(3.0f, 1.5f, 3.0f);
-		gameObjects.push_back(std::move(flatVase));
+		gameObjects.emplace(flatVase.getId(), std::move(flatVase));
 
 		yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/quad.obj");
 		auto quadFloor = YellowstoneGameObject::createGameObject();
 		quadFloor.model = yellowstoneModel;
 		quadFloor.transform.translation = {0.0f, 0.5f, 0.0f};
 		quadFloor.transform.scale = glm::vec3(3.0f, 1.0f, 3.0f);
-		gameObjects.push_back(std::move(quadFloor));
+		gameObjects.emplace(quadFloor.getId(), std::move(quadFloor));
 	}
 }
