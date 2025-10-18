@@ -68,5 +68,12 @@ namespace yellowstone {
 		flatVase.transform.translation = {0.5f, 0.5f, 2.5f};
 		flatVase.transform.scale = glm::vec3(3.0f, 1.5f, 3.0f);
 		gameObjects.push_back(std::move(flatVase));
+
+		yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/colored_cube.obj");
+		auto coloredCube = YellowstoneGameObject::createGameObject();
+		coloredCube.model = yellowstoneModel;
+		coloredCube.transform.translation = {0.0f, 0.0f, 5.0f};
+		coloredCube.transform.scale = glm::vec3(1.0f, 1.0f, 1.0f);
+		gameObjects.push_back(std::move(coloredCube));
 	}
 }

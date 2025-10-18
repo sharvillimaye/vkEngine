@@ -4,6 +4,7 @@
 .vscode/
 cmake-build-*/
 *.spv
+.DS_STORE
 
 # VisualStudio.gitignore
 # User-specific files

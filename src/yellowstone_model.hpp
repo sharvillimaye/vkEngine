@@ -1,6 +1,7 @@
 #pragma once
 
 #include "yellowstone_device.hpp"
+#include "yellowstone_buffer.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -49,13 +50,12 @@ namespace yellowstone {
 		void createIndexBuffers(const std::vector<uint32_t>& indices);
 
 		YellowstoneDevice& yellowstoneDevice;
-		VkBuffer vertexBuffer;
-		VkDeviceMemory vertexBufferMemory;
+
+		std::unique_ptr<YellowstoneBuffer> vertexBuffer;
 		uint32_t vertexCount;
 
 		bool hasIndexBuffer = false;
-		VkBuffer indexBuffer;
-		VkDeviceMemory indexBufferMemory;
+		std::unique_ptr<YellowstoneBuffer> indexBuffer;
 		uint32_t indexCount;
 	};
 }
