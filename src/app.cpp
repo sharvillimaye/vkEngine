@@ -56,10 +56,17 @@ namespace yellowstone {
 
 	void App::loadGameObjects() {
 		std::shared_ptr<YellowstoneModel> yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/smooth_vase.obj");
-		auto gameObject = YellowstoneGameObject::createGameObject();
-		gameObject.model = yellowstoneModel;
-		gameObject.transform.translation = {0.0f, 0.0f, 2.5f};
-		gameObject.transform.scale = glm::vec3(3.0f);
-		gameObjects.push_back(std::move(gameObject));
+		auto smoothVase = YellowstoneGameObject::createGameObject();
+		smoothVase.model = yellowstoneModel;
+		smoothVase.transform.translation = {-0.5f, 0.5f, 2.5f};
+		smoothVase.transform.scale = glm::vec3(3.0f, 1.5f, 3.0f);
+		gameObjects.push_back(std::move(smoothVase));
+
+		yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/flat_vase.obj");
+		auto flatVase = YellowstoneGameObject::createGameObject();
+		flatVase.model = yellowstoneModel;
+		flatVase.transform.translation = {0.5f, 0.5f, 2.5f};
+		flatVase.transform.scale = glm::vec3(3.0f, 1.5f, 3.0f);
+		gameObjects.push_back(std::move(flatVase));
 	}
 }

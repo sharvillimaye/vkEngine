@@ -13,7 +13,7 @@ namespace yellowstone {
 
 	struct SimplePushConstantData {
 		glm::mat4 transform{ 1.0f };
-		glm::mat4 modelMatrix{ 1.0f };
+		glm::mat4 normalMatrix{ 1.0f };
 	};
 
 	SimpleRenderSystem::SimpleRenderSystem(YellowstoneDevice& device, VkRenderPass renderPass) : yellowstoneDevice{device} {
@@ -66,7 +66,7 @@ namespace yellowstone {
 			SimplePushConstantData push{};
 			auto modelMatrix = obj.transform.mat4();
 			push.transform = projectionView * modelMatrix;
-			push.modelMatrix = modelMatrix;
+			push.normalMatrix = obj.transform.normalMatrix();
 			vkCmdPushConstants(
 				commandBuffer,
 				pipelineLayout,
