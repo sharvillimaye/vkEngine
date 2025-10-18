@@ -17,7 +17,9 @@ namespace yellowstone {
 
 	struct GlobalUbo {
 		glm::mat4 projectionViewMatrix{1.0f};
-		glm::vec3 lightDirection = glm::normalize(glm::vec3(1.0f, -3.0f, -1.0f));
+		glm::vec4 ambientLightColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.02f);
+		glm::vec3 lightPosition = glm::vec3(-1.0f);
+		alignas(16) glm::vec4 lightColor = glm::vec4(1.0f);
 	};
 
 	App::App() {
@@ -58,7 +60,8 @@ namespace yellowstone {
 		YellowstoneCamera camera{};
 		camera.setViewTarget(glm::vec3(-1.0f, -2.0f, -5.0f), glm::vec3(0.0f, 0.0f, 2.5f));
 
-		auto viewer = YellowstoneGameObject::createGameObject();
+		auto viewerObject = YellowstoneGameObject::createGameObject();
+		viewerObject.transform.translation.z = -2.5f;
 		KeyboardMovementController cameraController{};
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
@@ -71,11 +74,11 @@ namespace yellowstone {
         	currentTime = newTime;
 			// frameTime = std::min(frameTime, MAX_FRAME_TIME);
 
-        	cameraController.moveInPlaneXZ(yellowstoneWindow.getWindow(), frameTime, viewer);
-        	camera.setViewYXZ(viewer.transform.translation, viewer.transform.rotation);
+        	cameraController.moveInPlaneXZ(yellowstoneWindow.getWindow(), frameTime, viewerObject);
+        	camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
 			float aspect = yellowstoneRenderer.getAspectRatio();
-            camera.setPerspectiveProjection(glm::radians(50.0f), aspect, 0.1f, 10.0f);
+            camera.setPerspectiveProjection(glm::radians(50.0f), aspect, 0.1f, 100.0f);
 			if (auto commandBuffer = yellowstoneRenderer.beginFrame()) {
 				int frameIndex = yellowstoneRenderer.getFrameIndex();
 				FrameInfo frameInfo{
@@ -107,22 +110,22 @@ namespace yellowstone {
 		std::shared_ptr<YellowstoneModel> yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/smooth_vase.obj");
 		auto smoothVase = YellowstoneGameObject::createGameObject();
 		smoothVase.model = yellowstoneModel;
-		smoothVase.transform.translation = {-0.5f, 0.5f, 2.5f};
+		smoothVase.transform.translation = {-0.5f, 0.5f, 0.0f};
 		smoothVase.transform.scale = glm::vec3(3.0f, 1.5f, 3.0f);
 		gameObjects.push_back(std::move(smoothVase));
 
 		yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/flat_vase.obj");
 		auto flatVase = YellowstoneGameObject::createGameObject();
 		flatVase.model = yellowstoneModel;
-		flatVase.transform.translation = {0.5f, 0.5f, 2.5f};
+		flatVase.transform.translation = {0.5f, 0.5f, 0.0f};
 		flatVase.transform.scale = glm::vec3(3.0f, 1.5f, 3.0f);
 		gameObjects.push_back(std::move(flatVase));
 
-		yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/colored_cube.obj");
-		auto coloredCube = YellowstoneGameObject::createGameObject();
-		coloredCube.model = yellowstoneModel;
-		coloredCube.transform.translation = {0.0f, 0.0f, 5.0f};
-		coloredCube.transform.scale = glm::vec3(1.0f, 1.0f, 1.0f);
-		gameObjects.push_back(std::move(coloredCube));
+		yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/quad.obj");
+		auto quadFloor = YellowstoneGameObject::createGameObject();
+		quadFloor.model = yellowstoneModel;
+		quadFloor.transform.translation = {0.0f, 0.5f, 0.0f};
+		quadFloor.transform.scale = glm::vec3(3.0f, 1.0f, 3.0f);
+		gameObjects.push_back(std::move(quadFloor));
 	}
 }
