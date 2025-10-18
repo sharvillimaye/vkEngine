@@ -57,10 +57,10 @@ namespace yellowstone {
 		);
 	}
 
-	void SimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<YellowstoneGameObject>& gameObjects, const YellowstoneCamera& camera) {
-		yellowstonePipeline->bind(commandBuffer);
+	void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo, std::vector<YellowstoneGameObject>& gameObjects) {
+		yellowstonePipeline->bind(frameInfo.commandBuffer);
 
-		auto projectionView = camera.getProjectionMatrix() * camera.getViewMatrix();
+		auto projectionView = frameInfo.camera.getProjectionMatrix() * frameInfo.camera.getViewMatrix();
 
 		for (auto& obj : gameObjects) {
 			SimplePushConstantData push{};
@@ -68,15 +68,15 @@ namespace yellowstone {
 			push.transform = projectionView * modelMatrix;
 			push.normalMatrix = obj.transform.normalMatrix();
 			vkCmdPushConstants(
-				commandBuffer,
+				frameInfo.commandBuffer,
 				pipelineLayout,
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				0,
 				sizeof(SimplePushConstantData),
 				&push
 			);
-			obj.model->bind(commandBuffer);
-			obj.model->draw(commandBuffer);
+			obj.model->bind(frameInfo.commandBuffer);
+			obj.model->draw(frameInfo.commandBuffer);
 		}
 	}
 }

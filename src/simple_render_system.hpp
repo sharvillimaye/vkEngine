@@ -4,6 +4,7 @@
 #include "yellowstone_device.hpp"
 #include "yellowstone_game_object.hpp"
 #include "yellowstone_camera.hpp"
+#include "yellowstone_frame_info.hpp"
 
 #include <memory>
 #include <vector>
@@ -17,7 +18,7 @@ namespace yellowstone {
         SimpleRenderSystem(const SimpleRenderSystem&) = delete;
         SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 
-        void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<YellowstoneGameObject>& gameObjects, const YellowstoneCamera& camera);
+        void renderGameObjects(FrameInfo& frameInfo, std::vector<YellowstoneGameObject>& gameObjects);
 
     private:
         void createPipelineLayout();

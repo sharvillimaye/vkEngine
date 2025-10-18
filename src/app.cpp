@@ -12,7 +12,13 @@
 #include <cassert>
 #include <chrono>
 
+
 namespace yellowstone {
+
+	struct GlobalUbo {
+		glm::mat4 projectionView{1.0f};
+		glm::vec3 lightDirection = glm::normalize(glm::vec3(1.0f, -3.0f, -1.0f));
+	};
 
 	App::App() {
 		loadGameObjects();
@@ -21,6 +27,17 @@ namespace yellowstone {
 	App::~App() {}
 
 	void App::run() {
+		std::vector<std::unique_ptr<YellowstoneBuffer>> uboBuffers(YellowstoneSwapChain::MAX_FRAMES_IN_FLIGHT);
+		for (auto & uboBuffer : uboBuffers) {
+			uboBuffer = std::make_unique<YellowstoneBuffer>(
+				yellowstoneDevice,
+				sizeof(GlobalUbo),
+				1,
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+			uboBuffer->map();
+		}
+
 		SimpleRenderSystem simpleRenderSystem{ yellowstoneDevice, yellowstoneRenderer.getSwapChainRenderPass() };
 		YellowstoneCamera camera{};
 		camera.setViewTarget(glm::vec3(-1.0f, -2.0f, -5.0f), glm::vec3(0.0f, 0.0f, 2.5f));
@@ -44,8 +61,23 @@ namespace yellowstone {
 			float aspect = yellowstoneRenderer.getAspectRatio();
             camera.setPerspectiveProjection(glm::radians(50.0f), aspect, 0.1f, 10.0f);
 			if (auto commandBuffer = yellowstoneRenderer.beginFrame()) {
+				int frameIndex = yellowstoneRenderer.getFrameIndex();
+				FrameInfo frameInfo{
+					frameIndex,
+					frameTime,
+					commandBuffer,
+					camera
+				};
+
+				// Update
+				GlobalUbo ubo{};
+				ubo.projectionView = camera.getProjectionMatrix() * camera.getViewMatrix();
+				uboBuffers[frameIndex]->writeToBuffer(&ubo);
+				uboBuffers[frameIndex]->flush();
+
+				// Render
 				yellowstoneRenderer.beginSwapChainRenderPass(commandBuffer);
-				simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
+				simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
 				yellowstoneRenderer.endSwapChainRenderPass(commandBuffer);
 				yellowstoneRenderer.endFrame();
 			}
