@@ -4,6 +4,7 @@
 #include "yellowstone_device.hpp"
 #include "yellowstone_game_object.hpp"
 #include "yellowstone_renderer.hpp"
+#include "yellowstone_descriptors.hpp"
 
 #include <memory>
 #include <vector>
@@ -24,9 +25,10 @@ namespace yellowstone {
 	private:
 		void loadGameObjects();
 
-		YellowstoneWindow yellowstoneWindow{WIDTH, HEIGHT, "Hello Vulkan!"};
+		YellowstoneWindow yellowstoneWindow{WIDTH, HEIGHT, " Game Engine"};
 		YellowstoneDevice yellowstoneDevice{yellowstoneWindow};
 		YellowstoneRenderer yellowstoneRenderer{yellowstoneWindow, yellowstoneDevice};
+		std::unique_ptr<YellowstoneDescriptorPool> globalPool{};
 		std::vector<YellowstoneGameObject> gameObjects;
 	};
 }

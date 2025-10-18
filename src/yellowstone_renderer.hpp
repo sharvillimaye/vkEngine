@@ -46,7 +46,7 @@ namespace yellowstone {
         std::unique_ptr<YellowstoneSwapChain> yellowstoneSwapChain;
         std::vector<VkCommandBuffer> commandBuffers;
         uint32_t currentImageIndex;
-        int currentFrameIndex;
+        int currentFrameIndex = 0;
         bool isFrameStarted = false;
     };
 }

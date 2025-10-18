@@ -16,11 +16,15 @@
 namespace yellowstone {
 
 	struct GlobalUbo {
-		glm::mat4 projectionView{1.0f};
+		glm::mat4 projectionViewMatrix{1.0f};
 		glm::vec3 lightDirection = glm::normalize(glm::vec3(1.0f, -3.0f, -1.0f));
 	};
 
 	App::App() {
+		globalPool = YellowstoneDescriptorPool::Builder(yellowstoneDevice)
+			.setMaxSets(YellowstoneSwapChain::MAX_FRAMES_IN_FLIGHT)
+			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, YellowstoneSwapChain::MAX_FRAMES_IN_FLIGHT)
+			.build();
 		loadGameObjects();
 	}
 
@@ -38,7 +42,19 @@ namespace yellowstone {
 			uboBuffer->map();
 		}
 
-		SimpleRenderSystem simpleRenderSystem{ yellowstoneDevice, yellowstoneRenderer.getSwapChainRenderPass() };
+		auto globalSetLayout = YellowstoneDescriptorSetLayout::Builder(yellowstoneDevice)
+			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+			.build();
+
+		std::vector<VkDescriptorSet> globalDescriptorSets(YellowstoneSwapChain::MAX_FRAMES_IN_FLIGHT);
+		for (int i = 0; i < globalDescriptorSets.size(); i++) {
+			auto bufferInfo = uboBuffers[i]->descriptorInfo();
+			YellowstoneDescriptorWriter(*globalSetLayout, *globalPool)
+				.writeBuffer(0, &bufferInfo)
+				.build(globalDescriptorSets[i]);
+		}
+
+		SimpleRenderSystem simpleRenderSystem{ yellowstoneDevice, yellowstoneRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		YellowstoneCamera camera{};
 		camera.setViewTarget(glm::vec3(-1.0f, -2.0f, -5.0f), glm::vec3(0.0f, 0.0f, 2.5f));
 
@@ -66,12 +82,13 @@ namespace yellowstone {
 					frameIndex,
 					frameTime,
 					commandBuffer,
-					camera
+					camera,
+					globalDescriptorSets[frameIndex]
 				};
 
 				// Update
 				GlobalUbo ubo{};
-				ubo.projectionView = camera.getProjectionMatrix() * camera.getViewMatrix();
+				ubo.projectionViewMatrix = camera.getProjectionMatrix() * camera.getViewMatrix();
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
 

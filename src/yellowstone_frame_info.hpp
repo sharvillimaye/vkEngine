@@ -10,5 +10,6 @@ namespace yellowstone {
         float frameTime;
         VkCommandBuffer commandBuffer;
         YellowstoneCamera camera;
+        VkDescriptorSet descriptorSet;
     };
 }

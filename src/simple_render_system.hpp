@@ -13,7 +13,7 @@ namespace yellowstone {
 
     class SimpleRenderSystem {
     public:
-        SimpleRenderSystem(YellowstoneDevice& device, VkRenderPass renderPass);
+        SimpleRenderSystem(YellowstoneDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
         ~SimpleRenderSystem();
         SimpleRenderSystem(const SimpleRenderSystem&) = delete;
         SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
@@ -21,7 +21,7 @@ namespace yellowstone {
         void renderGameObjects(FrameInfo& frameInfo, std::vector<YellowstoneGameObject>& gameObjects);
 
     private:
-        void createPipelineLayout();
+        void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
         void createPipeline(VkRenderPass renderPass);
 
         YellowstoneDevice& yellowstoneDevice;
