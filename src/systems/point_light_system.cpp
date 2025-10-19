@@ -1,7 +1,7 @@
-#include "simple_render_system.hpp"
-
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include "point_light_system.hpp"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
@@ -11,25 +11,20 @@
 
 namespace yellowstone {
 
-	struct SimplePushConstantData {
-		glm::mat4 modelMatrix{ 1.0f };
-		glm::mat4 normalMatrix{ 1.0f };
-	};
-
-	SimpleRenderSystem::SimpleRenderSystem(YellowstoneDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : yellowstoneDevice{device} {
+	PointLightSystem::PointLightSystem(YellowstoneDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : yellowstoneDevice{device} {
 		createPipelineLayout(globalSetLayout);
 		createPipeline(renderPass);
 	}
 
-	SimpleRenderSystem::~SimpleRenderSystem() {
+	PointLightSystem::~PointLightSystem() {
 		vkDestroyPipelineLayout(yellowstoneDevice.device(), pipelineLayout, nullptr);
 	}
 
-	void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) {
-		VkPushConstantRange pushConstantRange{};
-		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-		pushConstantRange.offset = 0;
-		pushConstantRange.size = sizeof(SimplePushConstantData);
+	void PointLightSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) {
+		// VkPushConstantRange pushConstantRange{};
+		// pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		// pushConstantRange.offset = 0;
+		// pushConstantRange.size = sizeof(SimplePushConstantData);
 
 		std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
 
@@ -37,29 +32,31 @@ namespace yellowstone {
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
 		pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-		pipelineLayoutInfo.pushConstantRangeCount = 1;
-		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+		pipelineLayoutInfo.pushConstantRangeCount = 0;
+		pipelineLayoutInfo.pPushConstantRanges = nullptr;
 		if (vkCreatePipelineLayout(yellowstoneDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
 	}
 
-	void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
+	void PointLightSystem::createPipeline(VkRenderPass renderPass) {
 		assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
 
 		PipelineConfigInfo pipelineConfig{};
 		YellowstonePipeline::defaultPipelineConfigInfo(pipelineConfig);
+		pipelineConfig.bindingDescriptions.clear();
+		pipelineConfig.attributeDescriptions.clear();
 		pipelineConfig.renderPass = renderPass;
 		pipelineConfig.pipelineLayout = pipelineLayout;
 		yellowstonePipeline = std::make_unique<YellowstonePipeline>(
 			yellowstoneDevice,
-			"../src/shaders/simple_shader.vert.spv",
-			"../src/shaders/simple_shader.frag.spv",
+			"../src/shaders/point_light.vert.spv",
+			"../src/shaders/point_light.frag.spv",
 			pipelineConfig
 		);
 	}
 
-	void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo, std::vector<YellowstoneGameObject>& gameObjects) {
+	void PointLightSystem::render(FrameInfo& frameInfo) {
 		yellowstonePipeline->bind(frameInfo.commandBuffer);
 
 		vkCmdBindDescriptorSets(
@@ -73,20 +70,6 @@ namespace yellowstone {
 			nullptr
 			);
 
-		for (auto& obj : gameObjects) {
-			SimplePushConstantData push{};
-			push.modelMatrix = obj.transform.mat4();
-			push.normalMatrix = obj.transform.normalMatrix();
-			vkCmdPushConstants(
-				frameInfo.commandBuffer,
-				pipelineLayout,
-				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-				0,
-				sizeof(SimplePushConstantData),
-				&push
-			);
-			obj.model->bind(frameInfo.commandBuffer);
-			obj.model->draw(frameInfo.commandBuffer);
-		}
+		vkCmdDraw(frameInfo.commandBuffer, 6, 1, 0, 0);
 	}
 }

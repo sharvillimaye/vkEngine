@@ -29,6 +29,7 @@ namespace yellowstone {
 		YellowstoneDevice yellowstoneDevice{yellowstoneWindow};
 		YellowstoneRenderer yellowstoneRenderer{yellowstoneWindow, yellowstoneDevice};
 		std::unique_ptr<YellowstoneDescriptorPool> globalPool{};
-		std::vector<YellowstoneGameObject> gameObjects;
+
+		YellowstoneGameObject::Map gameObjects;
 	};
 }

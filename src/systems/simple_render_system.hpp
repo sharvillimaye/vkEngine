@@ -1,10 +1,10 @@
 #pragma once
 
-#include "yellowstone_pipeline.hpp"
-#include "yellowstone_device.hpp"
-#include "yellowstone_game_object.hpp"
-#include "yellowstone_camera.hpp"
-#include "yellowstone_frame_info.hpp"
+#include "../yellowstone_pipeline.hpp"
+#include "../yellowstone_device.hpp"
+#include "../yellowstone_game_object.hpp"
+#include "../yellowstone_camera.hpp"
+#include "../yellowstone_frame_info.hpp"
 
 #include <memory>
 #include <vector>
@@ -18,7 +18,7 @@ namespace yellowstone {
         SimpleRenderSystem(const SimpleRenderSystem&) = delete;
         SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 
-        void renderGameObjects(FrameInfo& frameInfo, std::vector<YellowstoneGameObject>& gameObjects);
+        void renderGameObjects(FrameInfo& frameInfo);
 
     private:
         void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);

@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <memory>
+#include <unordered_map>
 
 namespace yellowstone {
 
@@ -19,6 +20,8 @@ namespace yellowstone {
 	class YellowstoneGameObject {
 	public:
 		using id_t = unsigned int;
+		using Map = std::unordered_map<id_t, YellowstoneGameObject>;
+
 		static YellowstoneGameObject createGameObject() {
 			static id_t currentId = 0;
 			return YellowstoneGameObject{ currentId++ };
