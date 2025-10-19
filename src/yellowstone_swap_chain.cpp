@@ -55,14 +55,19 @@ namespace yellowstone {
         vkDestroyRenderPass(device.device(), renderPass, nullptr);
 
         // cleanup synchronization objects
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            vkDestroySemaphore(device.device(), renderFinishedSemaphores[i], nullptr);
+        for (size_t i = 0; i < imageAvailableSemaphores.size(); i++) {
             vkDestroySemaphore(device.device(), imageAvailableSemaphores[i], nullptr);
+        }
+        for (size_t i = 0; i < renderFinishedSemaphores.size(); i++) {
+            vkDestroySemaphore(device.device(), renderFinishedSemaphores[i], nullptr);
+        }
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroyFence(device.device(), inFlightFences[i], nullptr);
         }
     }
 
     VkResult YellowstoneSwapChain::acquireNextImage(uint32_t* imageIndex) {
+        // Wait for the previous frame's work to complete
         vkWaitForFences(
             device.device(),
             1,
@@ -74,8 +79,8 @@ namespace yellowstone {
             device.device(),
             swapChain,
             std::numeric_limits<uint64_t>::max(),
-            imageAvailableSemaphores[currentFrame],  // must be a not signaled semaphore
-            VK_NULL_HANDLE,
+            imageAvailableSemaphores[currentFrame],  // Use frame semaphore for acquire
+            VK_NULL_HANDLE,  // No fence
             imageIndex);
 
         return result;
@@ -91,6 +96,7 @@ namespace yellowstone {
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
+        // Wait for the acquire semaphore to be signaled
         VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         submitInfo.waitSemaphoreCount = 1;
@@ -100,7 +106,7 @@ namespace yellowstone {
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = buffers;
 
-        VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
+        VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[*imageIndex] };
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -348,8 +354,9 @@ namespace yellowstone {
     }
 
     void YellowstoneSwapChain::createSyncObjects() {
+        // Create semaphores per frame for acquire, per image for present
         imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-        renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+        renderFinishedSemaphores.resize(imageCount());
         inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
         imagesInFlight.resize(imageCount(), VK_NULL_HANDLE);
 
@@ -360,12 +367,25 @@ namespace yellowstone {
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
+        // Create acquire semaphores per frame
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             if (vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) !=
-                VK_SUCCESS ||
-                vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) !=
-                VK_SUCCESS ||
-                vkCreateFence(device.device(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+                VK_SUCCESS) {
+                throw std::runtime_error("failed to create acquire semaphore!");
+            }
+        }
+
+        // Create present semaphores per image
+        for (size_t i = 0; i < imageCount(); i++) {
+            if (vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) !=
+                VK_SUCCESS) {
+                throw std::runtime_error("failed to create present semaphore!");
+            }
+        }
+
+        // Create fences for frames in flight
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            if (vkCreateFence(device.device(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create synchronization objects for a frame!");
             }
         }
