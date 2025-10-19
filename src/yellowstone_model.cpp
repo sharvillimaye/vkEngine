@@ -126,7 +126,6 @@ namespace yellowstone {
 	std::unique_ptr<YellowstoneModel> YellowstoneModel::createModelFromFile(YellowstoneDevice& device, const std::string& filepath) {
 		Builder modelBuilder{};
 		modelBuilder.loadModel(filepath);
-		std::cout << "Loaded model size: " << modelBuilder.vertices.size() << std::endl;
 		return std::make_unique<YellowstoneModel>(device, modelBuilder);
 	}
 

@@ -39,8 +39,6 @@ namespace yellowstone {
 		assert(configInfo.renderPass != VK_NULL_HANDLE && "Cannot create graphics pipeline:: no renderPass provided in configInfo");
 		auto vertCode = readFile(vertFilepath);
 		auto fragCode = readFile(fragFilepath);
-		std::cout << "Vertex Shader Code Size: " << vertCode.size() << " bytes\n";
-		std::cout << "Fragment Shader Code Size: " << fragCode.size() << " bytes\n";
 		
 		createShaderModule(vertCode, &vertShaderModule);
 		createShaderModule(fragCode, &fragShaderModule);
