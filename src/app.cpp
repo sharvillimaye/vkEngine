@@ -1,7 +1,8 @@
 #include "app.hpp"
-#include "simple_render_system.hpp"
 #include "yellowstone_camera.hpp"
 #include "keyboard_movement_controller.hpp"
+#include "systems/simple_render_system.hpp"
+#include "systems/point_light_system.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -16,7 +17,8 @@
 namespace yellowstone {
 
 	struct GlobalUbo {
-		glm::mat4 projectionViewMatrix{1.0f};
+		glm::mat4 projection{1.0f};
+		glm::mat4 view{1.0f};
 		glm::vec4 ambientLightColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.02f);
 		glm::vec3 lightPosition = glm::vec3(-1.0f);
 		alignas(16) glm::vec4 lightColor = glm::vec4(1.0f);
@@ -57,6 +59,7 @@ namespace yellowstone {
 		}
 
 		SimpleRenderSystem simpleRenderSystem{ yellowstoneDevice, yellowstoneRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
+		PointLightSystem pointLightSystem{ yellowstoneDevice, yellowstoneRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		YellowstoneCamera camera{};
 		camera.setViewTarget(glm::vec3(-1.0f, -2.0f, -5.0f), glm::vec3(0.0f, 0.0f, 2.5f));
 
@@ -92,13 +95,15 @@ namespace yellowstone {
 
 				// Update
 				GlobalUbo ubo{};
-				ubo.projectionViewMatrix = camera.getProjectionMatrix() * camera.getViewMatrix();
+				ubo.projection = camera.getProjectionMatrix();
+				ubo.view = camera.getViewMatrix();
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
 
 				// Render
 				yellowstoneRenderer.beginSwapChainRenderPass(commandBuffer);
 				simpleRenderSystem.renderGameObjects(frameInfo);
+				pointLightSystem.render(frameInfo);
 				yellowstoneRenderer.endSwapChainRenderPass(commandBuffer);
 				yellowstoneRenderer.endFrame();
 			}
