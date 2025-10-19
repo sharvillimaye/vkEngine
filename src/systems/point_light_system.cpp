@@ -44,6 +44,8 @@ namespace yellowstone {
 
 		PipelineConfigInfo pipelineConfig{};
 		YellowstonePipeline::defaultPipelineConfigInfo(pipelineConfig);
+		pipelineConfig.bindingDescriptions.clear();
+		pipelineConfig.attributeDescriptions.clear();
 		pipelineConfig.renderPass = renderPass;
 		pipelineConfig.pipelineLayout = pipelineLayout;
 		yellowstonePipeline = std::make_unique<YellowstonePipeline>(
