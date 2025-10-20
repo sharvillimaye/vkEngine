@@ -1,3 +1,3 @@
-# Yellowstone
+# vkEngine
 
-Currently being developed. Aims to support Windows, MacOS, and Linux.
+Currently in development. Runs on Windows, MacOS, and Linux.
