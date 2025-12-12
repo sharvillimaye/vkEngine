@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 namespace yellowstone {
 
@@ -24,6 +25,16 @@ namespace yellowstone {
 
 	private:
 		void loadGameObjects();
+		void resetSimulation();
+
+		struct InitialState {
+			glm::vec3 translation;
+			glm::vec3 scale;
+			glm::vec3 rotation;
+			glm::vec3 velocity;
+			float mass;
+			bool isStatic;
+		};
 
 		YellowstoneWindow yellowstoneWindow{WIDTH, HEIGHT, " Game Engine"};
 		YellowstoneDevice yellowstoneDevice{yellowstoneWindow};
@@ -31,5 +42,6 @@ namespace yellowstone {
 		std::unique_ptr<YellowstoneDescriptorPool> globalPool{};
 
 		YellowstoneGameObject::Map gameObjects;
+		std::unordered_map<YellowstoneGameObject::id_t, InitialState> initialStates;
 	};
 }

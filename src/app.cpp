@@ -3,11 +3,13 @@
 #include "keyboard_movement_controller.hpp"
 #include "systems/simple_render_system.hpp"
 #include "systems/point_light_system.hpp"
+#include "systems/physics_system.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <GLFW/glfw3.h>
 
 #include <stdexcept>
 #include <cassert>
@@ -60,6 +62,7 @@ namespace yellowstone {
 
 		SimpleRenderSystem simpleRenderSystem{ yellowstoneDevice, yellowstoneRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
 		PointLightSystem pointLightSystem{ yellowstoneDevice, yellowstoneRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout() };
+		PhysicsSystem physicsSystem{};
 		YellowstoneCamera camera{};
 		camera.setViewTarget(glm::vec3(-1.0f, -2.0f, -5.0f), glm::vec3(0.0f, 0.0f, 2.5f));
 
@@ -68,9 +71,17 @@ namespace yellowstone {
 		KeyboardMovementController cameraController{};
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
+		bool rKeyPressedLastFrame = false;
 
         while (!yellowstoneWindow.shouldClose()) {
 			glfwPollEvents();
+
+			// Check for R key to reset simulation (only trigger once per press)
+			bool rKeyPressed = glfwGetKey(yellowstoneWindow.getWindow(), GLFW_KEY_R) == GLFW_PRESS;
+			if (rKeyPressed && !rKeyPressedLastFrame) {
+				resetSimulation();
+			}
+			rKeyPressedLastFrame = rKeyPressed;
 
         	auto newTime = std::chrono::high_resolution_clock::now();
         	float frameTime = std::chrono::duration<float>(newTime - currentTime).count();
@@ -94,6 +105,8 @@ namespace yellowstone {
 				};
 
 				// Update
+				physicsSystem.update(frameInfo);
+				
 				GlobalUbo ubo{};
 				ubo.projection = camera.getProjectionMatrix();
 				ubo.view = camera.getViewMatrix();
@@ -113,25 +126,103 @@ namespace yellowstone {
 	}
 
 	void App::loadGameObjects() {
-		std::shared_ptr<YellowstoneModel> yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/smooth_vase.obj");
-		auto smoothVase = YellowstoneGameObject::createGameObject();
-		smoothVase.model = yellowstoneModel;
-		smoothVase.transform.translation = {-0.5f, 0.5f, 0.0f};
-		smoothVase.transform.scale = glm::vec3(3.0f, 1.5f, 3.0f);
-		gameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
+		// Load models
+		std::shared_ptr<YellowstoneModel> cubeModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/cube.obj");
+		std::shared_ptr<YellowstoneModel> quadModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/quad.obj");
 
-		yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/flat_vase.obj");
-		auto flatVase = YellowstoneGameObject::createGameObject();
-		flatVase.model = yellowstoneModel;
-		flatVase.transform.translation = {0.5f, 0.5f, 0.0f};
-		flatVase.transform.scale = glm::vec3(3.0f, 1.5f, 3.0f);
-		gameObjects.emplace(flatVase.getId(), std::move(flatVase));
+		// Create ground plane (static)
+		auto ground = YellowstoneGameObject::createGameObject();
+		ground.model = quadModel;
+		ground.transform.translation = {0.0f, 0.1f, 0.0f};
+		ground.transform.scale = glm::vec3(10.0f, 1.0f, 10.0f);
+		ground.physics.isStatic = true;
+		ground.color = glm::vec3(0.3f, 0.3f, 0.3f);
+		auto groundId = ground.getId();
+		initialStates[groundId] = {
+			ground.transform.translation,
+			ground.transform.scale,
+			ground.transform.rotation,
+			ground.physics.velocity,
+			ground.physics.mass,
+			ground.physics.isStatic
+		};
+		gameObjects.emplace(groundId, std::move(ground));
 
-		yellowstoneModel = YellowstoneModel::createModelFromFile(yellowstoneDevice, "../src/models/quad.obj");
-		auto quadFloor = YellowstoneGameObject::createGameObject();
-		quadFloor.model = yellowstoneModel;
-		quadFloor.transform.translation = {0.0f, 0.5f, 0.0f};
-		quadFloor.transform.scale = glm::vec3(3.0f, 1.0f, 3.0f);
-		gameObjects.emplace(quadFloor.getId(), std::move(quadFloor));
+		// Create falling cubes with different initial positions and velocities
+		// In Y-down system: negative Y is above ground, positive Y is below ground
+		for (int i = 0; i < 5; i++) {
+			auto cube = YellowstoneGameObject::createGameObject();
+			cube.model = cubeModel;
+			cube.transform.translation = {
+				-2.0f + i * 1.0f,
+				-5.0f - i * 0.5f,  // Negative Y = above ground
+				0.0f
+			};
+			cube.transform.scale = glm::vec3(0.3f, 0.3f, 0.3f);
+			cube.physics.velocity = glm::vec3(0.0f, 0.0f, 0.0f);
+			cube.physics.mass = 1.0f;
+			cube.physics.isStatic = false;
+			// Different colors for visual variety
+			cube.color = glm::vec3(
+				0.5f + (i % 3) * 0.2f,
+				0.3f + ((i + 1) % 3) * 0.2f,
+				0.4f + ((i + 2) % 3) * 0.2f
+			);
+			auto cubeId = cube.getId();
+			initialStates[cubeId] = {
+				cube.transform.translation,
+				cube.transform.scale,
+				cube.transform.rotation,
+				cube.physics.velocity,
+				cube.physics.mass,
+				cube.physics.isStatic
+			};
+			gameObjects.emplace(cubeId, std::move(cube));
+		}
+
+		// Add a few cubes with initial horizontal velocity
+		for (int i = 0; i < 3; i++) {
+			auto cube = YellowstoneGameObject::createGameObject();
+			cube.model = cubeModel;
+			cube.transform.translation = {
+				-1.5f + i * 1.5f,
+				-8.0f,  // Negative Y = above ground
+				1.0f
+			};
+			cube.transform.scale = glm::vec3(0.4f, 0.4f, 0.4f);
+			cube.physics.velocity = glm::vec3(0.5f - i * 0.5f, 0.0f, -0.3f);
+			cube.physics.mass = 1.5f;
+			cube.physics.isStatic = false;
+			cube.color = glm::vec3(0.8f, 0.2f, 0.2f);
+			auto cubeId = cube.getId();
+			initialStates[cubeId] = {
+				cube.transform.translation,
+				cube.transform.scale,
+				cube.transform.rotation,
+				cube.physics.velocity,
+				cube.physics.mass,
+				cube.physics.isStatic
+			};
+			gameObjects.emplace(cubeId, std::move(cube));
+		}
+	}
+
+	void App::resetSimulation() {
+		// Reset all game objects to their initial state
+		for (auto& kv : gameObjects) {
+			auto& obj = kv.second;
+			auto id = obj.getId();
+			
+			// Only reset if we have initial state stored
+			if (initialStates.find(id) != initialStates.end()) {
+				const auto& initialState = initialStates[id];
+				obj.transform.translation = initialState.translation;
+				obj.transform.scale = initialState.scale;
+				obj.transform.rotation = initialState.rotation;
+				obj.physics.velocity = initialState.velocity;
+				obj.physics.mass = initialState.mass;
+				obj.physics.isStatic = initialState.isStatic;
+			}
+		}
 	}
 }

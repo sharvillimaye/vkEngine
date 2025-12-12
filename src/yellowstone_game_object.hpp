@@ -16,6 +16,12 @@ namespace yellowstone {
 		glm::mat4 mat4();
 		glm::mat3 normalMatrix();
 	};
+
+	struct PhysicsComponent {
+		glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
+		float mass = 1.0f;
+		bool isStatic = false;
+	};
 	
 	class YellowstoneGameObject {
 	public:
@@ -37,6 +43,7 @@ namespace yellowstone {
 		std::shared_ptr<YellowstoneModel> model{};
 		glm::vec3 color{};
 		TransformComponent transform{};
+		PhysicsComponent physics{};
 
 	private:
 		YellowstoneGameObject(id_t objId) : id{ objId } {}
